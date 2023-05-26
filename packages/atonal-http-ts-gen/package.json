@@ -1,0 +1,30 @@
+{
+  "name": "@atonal/http-ts-gen",
+  "version": "0.1.8",
+  "description": "Utils for generating TypeScript code based on API schemas",
+  "main": "dist/index.js",
+  "author": "Aego <aego.yu@gmail.com> (https://aego.me)",
+  "license": "MIT",
+  "scripts": {
+    "build": "rimraf dist && tsc"
+  },
+  "peerDependencies": {
+    "@atonal/http": "^0.1.13",
+    "prettier": "^2.8.8",
+    "zod": "^3.21.4",
+    "zod-to-ts": "^1.1.4"
+  },
+  "devDependencies": {
+    "@atonal/http": "workspace:^",
+    "@types/node": "^18.16.14",
+    "@types/prettier": "^2.7.2",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.0.4",
+    "zod": "^3.21.4",
+    "zod-to-ts": "^1.1.4"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}

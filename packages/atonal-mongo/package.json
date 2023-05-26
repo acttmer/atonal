@@ -1,0 +1,24 @@
+{
+  "name": "@atonal/mongo",
+  "version": "0.1.1",
+  "description": "TypeScript-based MongoDB virtual ODM",
+  "main": "dist/index.js",
+  "author": "Aego <aego.yu@gmail.com> (https://aego.me)",
+  "license": "MIT",
+  "scripts": {
+    "build": "rimraf dist && tsc"
+  },
+  "peerDependencies": {
+    "mongodb": "^5.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.14",
+    "mongodb": "^5.5.0",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.0.4"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
