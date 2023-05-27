@@ -1,0 +1,26 @@
+{
+  "name": "@atonal/next",
+  "version": "0.1.0",
+  "description": "Build stateless HTTP JSON API endpoints with Next.js",
+  "main": "dist/index.js",
+  "author": "Aego <aego.yu@gmail.com> (https://aego.me)",
+  "license": "MIT",
+  "scripts": {
+    "build": "rimraf dist && tsc"
+  },
+  "peerDependencies": {
+    "next": "^13.4.4",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.14",
+    "next": "^13.4.4",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.0.4",
+    "zod": "^3.21.4"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
