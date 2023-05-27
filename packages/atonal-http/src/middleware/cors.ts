@@ -1,4 +1,7 @@
-import { IncomingMessage as Request, ServerResponse as Response } from 'http'
+import type {
+  IncomingMessage as Request,
+  ServerResponse as Response,
+} from 'http'
 import { vary } from '../http'
 
 export interface AccessControlOptions {

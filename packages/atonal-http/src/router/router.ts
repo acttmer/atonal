@@ -1,16 +1,11 @@
-import { IncomingMessage, ServerResponse } from 'http'
-import querystring from 'querystring'
-import url from 'url'
+import type { IncomingMessage, ServerResponse } from 'http'
+import { parse as parseQuerystring } from 'querystring'
+import { parse as parseUrl } from 'url'
 import { ZodType } from 'zod'
-import {
-  DefaultParams,
-  Request,
-  RequestHandler,
-  parseRequestBody,
-} from '../http'
-import { Middleware } from '../middleware'
+import { DefaultParams, RequestHandler, parseRequestBody } from '../http'
+import type { Middleware } from '../middleware'
 import { addRoutesFromDirectory } from './directory'
-import {
+import type {
   CompiledRoute,
   ErrorResponseModifier,
   InvalidRequestResponseModifier,
@@ -107,7 +102,7 @@ export class Router {
       return
     }
 
-    const { pathname, query } = url.parse(req.url)
+    const { pathname, query } = parseUrl(req.url)
 
     if (pathname === null) {
       return
@@ -128,98 +123,94 @@ export class Router {
 
       matched = true
 
-      const params = match.slice(1).reduce((prev, curr, index) => {
-        prev[route.params[index]] = curr
-        return prev
-      }, {} as DefaultParams)
-
       const parseBodyResult = await parseRequestBody(req)
 
       if (!parseBodyResult.success) {
         return this.modifiers.error(req, res, parseBodyResult.error)
       }
 
-      const values: Pick<Request, 'params' | 'query' | 'body' | 'headers'> = {
-        params,
-        query: query ? querystring.parse(query) : {},
+      const request = Object.assign(req, {
+        params: match.slice(1).reduce((prev, curr, index) => {
+          prev[route.params[index]] = curr
+          return prev
+        }, {} as DefaultParams),
+        query: query ? parseQuerystring(query) : {},
         body: parseBodyResult.body,
         headers: req.headers,
-      }
+      })
 
       try {
-        if (route.schema) {
-          if (route.schema.params instanceof ZodType) {
-            const response = route.schema.params.safeParse(values.params)
+        const { schema, middlewares = [], handler } = route
 
-            if (!response.success) {
+        if (schema) {
+          if (schema.params instanceof ZodType) {
+            const parsed = await schema.params.safeParseAsync(request.params)
+
+            if (!parsed.success) {
               return this.modifiers.invalidRequest(
                 req,
                 res,
-                response.error.errors,
+                parsed.error.errors,
               )
             }
 
-            Object.assign(values.params, response.data)
+            Object.assign(request.params, parsed.data)
           }
 
-          if (route.schema.query instanceof ZodType) {
-            const response = route.schema.query.safeParse(values.query)
+          if (schema.query instanceof ZodType) {
+            const parsed = await schema.query.safeParseAsync(request.query)
 
-            if (!response.success) {
+            if (!parsed.success) {
               return this.modifiers.invalidRequest(
                 req,
                 res,
-                response.error.errors,
+                parsed.error.errors,
               )
             }
 
-            Object.assign(values.query, response.data)
+            Object.assign(request.query, parsed.data)
           }
 
-          if (route.schema.body instanceof ZodType) {
-            const response = route.schema.body.safeParse(values.body)
+          if (schema.body instanceof ZodType) {
+            const parsed = await schema.body.safeParseAsync(request.body)
 
-            if (!response.success) {
+            if (!parsed.success) {
               return this.modifiers.invalidRequest(
                 req,
                 res,
-                response.error.errors,
+                parsed.error.errors,
               )
             }
 
-            if (values.body !== null) {
-              Object.assign(values.body, response.data)
+            if (request.body !== null) {
+              Object.assign(request.body, parsed.data)
             }
           }
 
-          if (route.schema.headers instanceof ZodType) {
-            const response = route.schema.headers.safeParse(values.headers)
+          if (schema.headers instanceof ZodType) {
+            const parsed = await schema.headers.safeParseAsync(request.headers)
 
-            if (!response.success) {
+            if (!parsed.success) {
               return this.modifiers.invalidRequest(
                 req,
                 res,
-                response.error.errors,
+                parsed.error.errors,
               )
             }
 
-            Object.assign(values.headers, response.data)
+            Object.assign(request.headers, parsed.data)
           }
         }
 
-        const request = Object.assign(req, values)
+        for (const middleware of middlewares) {
+          await middleware(req, res)
 
-        if (route.middlewares) {
-          for (const middleware of route.middlewares) {
-            await middleware(req, res)
-
-            if (res.writableEnded) {
-              return
-            }
+          if (res.writableEnded) {
+            return
           }
         }
 
-        const json = await route.handler(request, res)
+        const json = await handler(request, res)
 
         if (json) {
           return this.modifiers.success(req, res, json)

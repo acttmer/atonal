@@ -1,5 +1,5 @@
-import { IncomingMessage } from 'http'
-import { JSONValue } from './interface'
+import type { IncomingMessage } from 'http'
+import type { JSONValue } from './interface'
 
 export type ParseRequestBodyResult =
   | {

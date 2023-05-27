@@ -1,13 +1,13 @@
-import { IncomingMessage, ServerResponse } from 'http'
-import { TypeOf, ZodIssue, ZodType } from 'zod'
-import {
+import type { IncomingMessage, ServerResponse } from 'http'
+import type { TypeOf, ZodIssue, ZodType } from 'zod'
+import type {
   DefaultBody,
   DefaultHeaders,
   DefaultParams,
   DefaultQuery,
   RequestHandler,
 } from '../http'
-import { Middleware } from '../middleware'
+import type { Middleware } from '../middleware'
 
 type LazyCallback<T> = () => T
 type LazyCallbackOr<T> = LazyCallback<T> | T

@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { Router } from './router'
+import type { Router } from './router'
 
 const SUPPORT_HTTP_METHODS = [
   'GET',

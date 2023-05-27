@@ -1,4 +1,4 @@
-import { ServerResponse as Response } from 'http'
+import type { ServerResponse as Response } from 'http'
 
 const FIELD_NAME_REGEXP = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/
 

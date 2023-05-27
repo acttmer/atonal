@@ -1,5 +1,5 @@
-import { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
-import { ParsedUrlQuery } from 'querystring'
+import type { IncomingHttpHeaders, IncomingMessage, ServerResponse } from 'http'
+import type { ParsedUrlQuery } from 'querystring'
 
 export type JSONValue =
   | string
