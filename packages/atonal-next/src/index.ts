@@ -41,19 +41,21 @@ export const createNext = () => {
       const { query } = parseUrl(nextRequest.url)
 
       const req = Object.assign(nextRequest, {
-        params,
-        query: query ? parseQuerystring(query) : {},
-        body: nextRequest.body,
-        headers: Object.fromEntries(nextRequest.headers),
+        values: {
+          params,
+          query: query ? parseQuerystring(query) : {},
+          body: nextRequest.body,
+          headers: Object.fromEntries(nextRequest.headers),
+        },
       }) as Request
 
       try {
         if (schema) {
           if (schema.params instanceof ZodType) {
-            const parsed = await schema.params.safeParseAsync(req.params)
+            const parsed = await schema.params.safeParseAsync(req.values.params)
 
             if (parsed.success) {
-              Object.assign(req.params, parsed.data)
+              Object.assign(req.values.params, parsed.data)
             } else {
               const { errors } = parsed.error
 
@@ -62,10 +64,10 @@ export const createNext = () => {
           }
 
           if (schema.query instanceof ZodType) {
-            const parsed = await schema.query.safeParseAsync(req.query)
+            const parsed = await schema.query.safeParseAsync(req.values.query)
 
             if (parsed.success) {
-              Object.assign(req.query, parsed.data)
+              Object.assign(req.values.query, parsed.data)
             } else {
               const { errors } = parsed.error
 
@@ -74,10 +76,10 @@ export const createNext = () => {
           }
 
           if (schema.body instanceof ZodType) {
-            const parsed = await schema.body.safeParseAsync(req.body)
+            const parsed = await schema.body.safeParseAsync(req.values.body)
 
             if (parsed.success) {
-              Object.assign(req, { body: parsed.data })
+              Object.assign(req.values, { body: parsed.data })
             } else {
               const { errors } = parsed.error
 
@@ -86,10 +88,12 @@ export const createNext = () => {
           }
 
           if (schema.headers instanceof ZodType) {
-            const parsed = await schema.headers.safeParseAsync(req.headers)
+            const parsed = await schema.headers.safeParseAsync(
+              req.values.headers,
+            )
 
             if (parsed.success) {
-              Object.assign(req.headers, parsed.data)
+              Object.assign(req.values.headers, parsed.data)
             } else {
               const { errors } = parsed.error
 

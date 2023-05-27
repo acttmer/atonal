@@ -25,10 +25,12 @@ export type Request<
   Body = DefaultBody,
   Headers = DefaultHeaders,
 > = NextRequest & {
-  readonly params: Params
-  readonly query: Query
-  readonly body: Body
-  readonly headers: Headers
+  readonly values: {
+    readonly params: Params
+    readonly query: Query
+    readonly body: Body
+    readonly headers: Headers
+  }
 }
 
 export type Middleware = (req: Request) => Promise<void> | void
