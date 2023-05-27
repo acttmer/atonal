@@ -1,34 +1,14 @@
+import { RouteSchema, Router } from '@atonal/http'
 import fs from 'fs/promises'
 import path from 'path'
-import type { Router } from './router'
+import { FileRoute } from './interface'
+import { SUPPORT_HTTP_METHODS, resolveUrlPaths } from './utils'
 
-const SUPPORT_HTTP_METHODS = [
-  'GET',
-  'POST',
-  'PUT',
-  'PATCH',
-  'DELETE',
-  'HEAD',
-] as const
+export const defineRoute = <Schema extends RouteSchema>(
+  route: FileRoute<Schema>,
+) => route
 
-const resolveUrlPaths = (...paths: string[]) => {
-  const result: string[] = []
-
-  while (paths.length > 0) {
-    const path = paths
-      .shift()!
-      .replace(/^[\/]+/, '')
-      .replace(/[\/]+$/, '')
-
-    if (path.length > 0) {
-      result.push(path)
-    }
-  }
-
-  return '/' + result.join('/')
-}
-
-export const addRoutesFromDirectory = async (
+export const createFileRoutes = async (
   router: Router,
   baseDir: string,
   prefix: string = '/',

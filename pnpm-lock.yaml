@@ -17,6 +17,24 @@ importers:
         specifier: ^3.21.4
         version: 3.21.4
 
+  packages/atonal-http-file-router:
+    devDependencies:
+      '@atonal/http':
+        specifier: workspace:^
+        version: link:../atonal-http
+      '@types/node':
+        specifier: ^18.16.14
+        version: 18.16.14
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.1
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      zod:
+        specifier: ^3.21.4
+        version: 3.21.4
+
   packages/atonal-http-ts-gen:
     dependencies:
       prettier:

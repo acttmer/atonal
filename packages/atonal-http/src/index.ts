@@ -26,10 +26,6 @@ export class Http {
     return this.router.route.bind(this.router)
   }
 
-  get routesDirectory() {
-    return this.router.routesDirectory.bind(this.router)
-  }
-
   listen(port: number, hostname: string, cb?: () => void) {
     this.httpServer.on('request', (req, res) => {
       this.router.handle(req, res)

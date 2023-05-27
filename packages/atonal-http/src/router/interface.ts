@@ -9,10 +9,10 @@ import type {
 } from '../http'
 import type { Middleware } from '../middleware'
 
-type LazyCallback<T> = () => T
-type LazyCallbackOr<T> = LazyCallback<T> | T
+export type LazyCallback<T> = () => T
+export type LazyCallbackOr<T> = LazyCallback<T> | T
 
-type Static<T, U> = [T] extends [ZodType] ? TypeOf<T> : U
+export type Static<T, U> = [T] extends [ZodType] ? TypeOf<T> : U
 
 export type HTTPMethods =
   | 'DELETE'
@@ -44,18 +44,6 @@ export interface Route<Schema extends RouteSchema> {
   readonly name?: string
   readonly method: HTTPMethods
   readonly path: string
-  readonly schema?: LazyCallbackOr<Schema>
-  readonly middlewares?: readonly Middleware[]
-  readonly handler: RequestHandler<
-    Static<Schema['params'], DefaultParams>,
-    Static<Schema['query'], DefaultQuery>,
-    Static<Schema['body'], DefaultBody>,
-    Static<Schema['headers'], DefaultHeaders>
-  >
-}
-
-export interface MethodRoute<Schema extends RouteSchema> {
-  readonly name?: string
   readonly schema?: LazyCallbackOr<Schema>
   readonly middlewares?: readonly Middleware[]
   readonly handler: RequestHandler<

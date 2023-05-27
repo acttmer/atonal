@@ -1,15 +1,9 @@
 import type {
   ErrorResponseModifier,
   InvalidRequestResponseModifier,
-  MethodRoute,
   NotFoundResponseModifier,
-  RouteSchema,
   SuccessResponseModifier,
 } from './interface'
-
-export const defineRoute = <Schema extends RouteSchema>(
-  route: MethodRoute<Schema>,
-) => route
 
 export const DEFAULT_SUCCESS_RESPONSE_MODIFIER: SuccessResponseModifier = (
   _req,

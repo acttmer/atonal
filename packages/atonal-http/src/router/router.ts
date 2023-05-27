@@ -4,7 +4,6 @@ import { parse as parseUrl } from 'url'
 import { ZodType } from 'zod'
 import { DefaultParams, RequestHandler, parseRequestBody } from '../http'
 import type { Middleware } from '../middleware'
-import { addRoutesFromDirectory } from './directory'
 import type {
   CompiledRoute,
   ErrorResponseModifier,
@@ -77,11 +76,6 @@ export class Router {
       handler: handler as RequestHandler,
     })
 
-    return this
-  }
-
-  async routesDirectory(baseDir: string, prefix: string = '/') {
-    await addRoutesFromDirectory(this, baseDir, prefix)
     return this
   }
 
