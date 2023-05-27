@@ -1,4 +1,4 @@
-import { RouteSchema, Router } from '@atonal/http'
+import { Http, RouteSchema } from '@atonal/http'
 import fs from 'fs/promises'
 import path from 'path'
 import { FileRoute } from './interface'
@@ -9,7 +9,7 @@ export const defineRoute = <Schema extends RouteSchema>(
 ) => route
 
 export const createFileRoutes = async (
-  router: Router,
+  http: Http,
   baseDir: string,
   prefix: string = '/',
 ) => {
@@ -39,7 +39,7 @@ export const createFileRoutes = async (
 
         for (const method of SUPPORT_HTTP_METHODS) {
           if (module[method]) {
-            router.route({
+            http.router.route({
               name: module[method].name,
               method,
               path: pathname,

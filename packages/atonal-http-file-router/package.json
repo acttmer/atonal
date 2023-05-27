@@ -1,6 +1,6 @@
 {
   "name": "@atonal/http-file-router",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create routes for HTTP API endpoints from file system",
   "main": "dist/index.js",
   "author": "Aego <aego.yu@gmail.com> (https://aego.me)",
