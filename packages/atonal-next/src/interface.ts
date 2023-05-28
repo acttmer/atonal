@@ -17,7 +17,6 @@ export type DefaultParams = Record<string, string>
 export type DefaultQuery = ParsedUrlQuery
 export type DefaultBody = JSONValue
 export type DefaultHeaders = IncomingHttpHeaders
-export type DefaultResponseData = unknown
 
 export type Request<
   Params = DefaultParams,
@@ -45,11 +44,9 @@ export interface RouteSchema {
   readonly query?: unknown
   readonly body?: unknown
   readonly headers?: unknown
-  readonly responseData?: unknown
 }
 
 export interface Route<Schema extends RouteSchema = RouteSchema> {
-  readonly name?: string
   readonly middlewares?: readonly Middleware[]
   readonly schema?: Schema
   readonly handler: RequestHandler<
