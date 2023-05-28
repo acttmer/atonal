@@ -3,7 +3,7 @@ import type { NextRequest, NextResponse } from 'next/server'
 import type { ParsedUrlQuery } from 'querystring'
 import type { TypeOf, ZodIssue, ZodType } from 'zod'
 
-type Static<T, U> = [T] extends [ZodType] ? TypeOf<T> : U
+export type Static<T, U> = [T] extends [ZodType] ? TypeOf<T> : U
 
 export type JSONValue =
   | string
@@ -25,12 +25,10 @@ export type Request<
   Body = DefaultBody,
   Headers = DefaultHeaders,
 > = NextRequest & {
-  readonly values: {
-    readonly params: Params
-    readonly query: Query
-    readonly body: Body
-    readonly headers: Headers
-  }
+  readonly params: Params
+  readonly query: Query
+  readonly body: Body
+  readonly headers: Headers
 }
 
 export type Middleware = (req: Request) => Promise<void> | void
@@ -50,7 +48,7 @@ export interface RouteSchema {
   readonly responseData?: unknown
 }
 
-export interface Route<Schema extends RouteSchema> {
+export interface Route<Schema extends RouteSchema = RouteSchema> {
   readonly name?: string
   readonly middlewares?: readonly Middleware[]
   readonly schema?: Schema
