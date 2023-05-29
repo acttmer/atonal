@@ -40,7 +40,7 @@ export const createNext = () => {
     ) => {
       const url = parseUrl(nextRequest.url)
       const query = url.query ? parseQuerystring(url.query) : {}
-      const body = await nextRequest.json()
+      const body = nextRequest.body === null ? null : await nextRequest.json()
       const headers = Object.fromEntries(nextRequest.headers)
 
       const req = {

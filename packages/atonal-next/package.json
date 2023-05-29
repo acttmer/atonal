@@ -1,6 +1,6 @@
 {
   "name": "@atonal/next",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Build stateless HTTP JSON API endpoints with Next.js",
   "main": "dist/index.js",
   "author": "Aego <aego.yu@gmail.com> (https://aego.me)",
