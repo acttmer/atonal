@@ -74,7 +74,7 @@ export type ToJSON<T> = {
     ? string
     : [T[K]] extends [Ref<infer _X> | undefined]
     ? string | ToJSON<_X>
-    : [T[K]] extends {} | undefined
+    : [T[K]] extends [{} | undefined]
     ? ToJSON<T[K]>
     : T[K]
 }
