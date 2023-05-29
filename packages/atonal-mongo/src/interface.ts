@@ -66,3 +66,15 @@ export type FillableDocument<T extends DepopulateRef<BaseModel>> = Omit<
   keyof TimestampsModel
 > &
   Partial<TimestampsModel>
+
+export type ToJSON<T> = {
+  [K in keyof T]: T[K] extends Date | undefined
+    ? string
+    : [T[K]] extends [ObjectId | undefined]
+    ? string
+    : [T[K]] extends [Ref<infer _X> | undefined]
+    ? string | ToJSON<_X>
+    : [T[K]] extends {} | undefined
+    ? ToJSON<T[K]>
+    : T[K]
+}
