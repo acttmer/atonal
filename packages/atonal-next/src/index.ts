@@ -38,14 +38,17 @@ export const createNext = () => {
         params: DefaultParams
       },
     ) => {
-      const { query } = parseUrl(nextRequest.url)
+      const url = parseUrl(nextRequest.url)
+      const query = url.query ? parseQuerystring(url.query) : {}
+      const body = await nextRequest.json()
+      const headers = Object.fromEntries(nextRequest.headers)
 
       const req = {
         ...nextRequest,
         params,
-        query: query ? parseQuerystring(query) : {},
-        body: nextRequest.body,
-        headers: Object.fromEntries(nextRequest.headers),
+        query,
+        body,
+        headers,
       } as Request
 
       try {
