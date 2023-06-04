@@ -38,3 +38,5 @@ export type RequestHandler<
   req: Request<Params, Query, Body, Headers>,
   res: Response,
 ) => Promise<unknown> | unknown | Promise<void> | void
+
+export type RequestDecorator<T> = (req: Request) => T
