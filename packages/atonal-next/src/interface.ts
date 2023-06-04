@@ -23,7 +23,7 @@ export type Request<
   Query = DefaultQuery,
   Body = DefaultBody,
   Headers = DefaultHeaders,
-> = NextRequest & {
+> = Omit<NextRequest, 'body' | 'headers'> & {
   readonly params: Params
   readonly query: Query
   readonly body: Body
