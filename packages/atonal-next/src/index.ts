@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { parse as parseQuerystring } from 'querystring'
 import { parse as parseUrl } from 'url'
 import { ZodType } from 'zod'
@@ -107,6 +107,10 @@ export const createNext = () => {
         }
 
         const result = await handler(req)
+
+        if (result instanceof NextResponse) {
+          return result
+        }
 
         return modifiers.success(result)
       } catch (error) {
