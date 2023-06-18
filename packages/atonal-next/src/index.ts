@@ -42,7 +42,7 @@ export const createNext = () => {
       const query = url.query ? parseQuerystring(url.query) : {}
 
       const body = await (async () => {
-        if (!nextRequest.bodyUsed || nextRequest.body === null) {
+        if (nextRequest.body === null) {
           return null
         }
 
