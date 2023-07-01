@@ -1,179 +1,162 @@
-import type { IncomingMessage, ServerResponse } from 'http'
-import { parse as parseQuerystring } from 'querystring'
-import { parse as parseUrl } from 'url'
-import { ZodType } from 'zod'
-import { DefaultParams, RequestHandler, parseRequestBody } from '../http'
-import type { Middleware } from '../middleware'
-import type {
-  CompiledRoute,
-  ErrorResponseModifier,
-  InvalidRequestResponseModifier,
-  NotFoundResponseModifier,
-  Route,
-  RouteSchema,
-  SuccessResponseModifier,
-} from './interface'
-import {
-  DEFAULT_ERROR_RESPONSE_MODIFIER,
-  DEFAULT_INVALID_REQUEST_RESPONSE_MODIFIER,
-  DEFAULT_NOT_FOUND_RESPONSE_MODIFIER,
-  DEFAULT_SUCCESS_RESPONSE_MODIFIER,
-} from './utils'
+import { HTTPError, parseRequestBody, type DefaultParams } from '../http'
+import { defineMiddleware, type Middleware } from '../middleware'
+import type { CompiledRoute, Route, RouteSchema } from './interface'
+import { parseRoutePath } from './utils'
+
+export interface RouterInit {
+  readonly prefix?: string
+  readonly middlewares?: Middleware[]
+  readonly routes?: Route<RouteSchema>[]
+}
 
 export class Router {
-  public readonly modifiers: {
-    success: SuccessResponseModifier
-    error: ErrorResponseModifier
-    invalidRequest: InvalidRequestResponseModifier
-    notFound: NotFoundResponseModifier
-  }
-
-  private readonly routes: CompiledRoute[]
+  private readonly prefix: string
   private readonly middlewares: Middleware[]
+  private readonly routes: Route<RouteSchema>[]
 
-  constructor() {
-    this.modifiers = {
-      success: DEFAULT_SUCCESS_RESPONSE_MODIFIER,
-      error: DEFAULT_ERROR_RESPONSE_MODIFIER,
-      invalidRequest: DEFAULT_INVALID_REQUEST_RESPONSE_MODIFIER,
-      notFound: DEFAULT_NOT_FOUND_RESPONSE_MODIFIER,
-    }
-
-    this.routes = []
-    this.middlewares = []
+  constructor({ prefix = '', middlewares = [], routes = [] }: RouterInit = {}) {
+    this.prefix = prefix
+    this.middlewares = middlewares
+    this.routes = routes
   }
 
   getRoutes() {
     return this.routes
   }
 
-  use(middleware: Middleware) {
-    this.middlewares.push(middleware)
+  use(middleware: Middleware): Router
+  use(path: string, router: Router): Router
+  use(router: Router): Router
+  use(source: string | Router | Middleware, router?: Router) {
+    if (typeof source === 'string') {
+      if (router) {
+        for (const { path, ...route } of router.routes) {
+          this.route({ path: source + path, ...route })
+        }
+      }
+    } else if (source instanceof Router) {
+      for (const route of source.routes) {
+        this.route(route)
+      }
+    } else {
+      this.middlewares.push(source)
+    }
+
+    return this
   }
 
-  route<Schema extends RouteSchema>({
-    name,
-    method,
-    path,
-    schema,
-    middlewares,
-    handler,
-  }: Route<Schema>) {
-    const params: string[] = []
-    const regexString = path.replace(/:\w+/g, param => {
-      params.push(param.slice(1))
-      return '([^/]+)'
-    })
-
+  route<Schema extends RouteSchema>({ path, ...route }: Route<Schema>) {
     this.routes.push({
-      name,
-      method,
-      path,
-      pattern: new RegExp(`^${regexString}$`),
-      params,
-      schema: typeof schema === 'function' ? schema() : schema,
-      middlewares,
-      handler: handler as RequestHandler,
+      path: this.prefix + path,
+      ...route,
     })
 
     return this
   }
 
-  async handle(req: IncomingMessage, res: ServerResponse<IncomingMessage>) {
-    try {
+  compile() {
+    const routes = this.routes.map(route => {
+      const { name, method, path, schema, middlewares = [], handler } = route
+      const { pattern, params } = parseRoutePath(path)
+
+      return {
+        name,
+        method,
+        path,
+        pattern,
+        params,
+        schema: typeof schema === 'function' ? schema() : schema,
+        middlewares,
+        handler,
+      } satisfies CompiledRoute
+    })
+
+    return defineMiddleware(async (req, res) => {
       for (const middleware of this.middlewares) {
-        await middleware(req, res)
+        const result = await middleware(req, res)
+
+        if (result !== undefined) {
+          return result
+        }
 
         if (res.writableEnded) {
           return
         }
       }
-    } catch (error) {
-      return this.modifiers.error(req, res, error)
-    }
 
-    if (typeof req.method === 'undefined' || typeof req.url === 'undefined') {
-      return
-    }
-
-    const { pathname, query } = parseUrl(req.url)
-
-    if (pathname === null) {
-      return
-    }
-
-    let matched = false
-
-    for (const route of this.routes) {
-      if (route.method !== req.method.toUpperCase()) {
-        continue
+      if (req.method === undefined || req.url === undefined) {
+        return
       }
 
-      const match = pathname.match(route.pattern)
+      for (const route of routes) {
+        if (route.method !== req.method.toUpperCase()) {
+          continue
+        }
 
-      if (match === null) {
-        continue
-      }
+        const { url, headers } = req
+        const { pathname, searchParams } = new URL(url, `http://localhost`)
 
-      matched = true
+        const match = pathname.match(route.pattern)
 
-      const parseBodyResult = await parseRequestBody(req)
+        if (match === null) {
+          continue
+        }
 
-      if (!parseBodyResult.success) {
-        return this.modifiers.error(req, res, parseBodyResult.error)
-      }
-
-      const request = Object.assign(req, {
-        params: match.slice(1).reduce((prev, curr, index) => {
+        const params = match.slice(1).reduce((prev, curr, index) => {
           prev[route.params[index]] = curr
           return prev
-        }, {} as DefaultParams),
-        query: query ? parseQuerystring(query) : {},
-        body: parseBodyResult.body,
-        headers: req.headers,
-      })
+        }, {} as DefaultParams)
 
-      try {
-        const { schema, middlewares = [], handler } = route
+        const query = Object.fromEntries(searchParams)
+        const body = await parseRequestBody(req)
+
+        const request = Object.assign(req, {
+          params,
+          query,
+          body,
+          headers,
+        })
+
+        const { schema, middlewares, handler } = route
 
         if (schema) {
-          if (schema.params instanceof ZodType) {
+          if (schema.params) {
             const parsed = await schema.params.safeParseAsync(request.params)
 
             if (!parsed.success) {
-              return this.modifiers.invalidRequest(
-                req,
-                res,
-                parsed.error.errors,
-              )
+              throw new HTTPError({
+                statusCode: 400,
+                message: 'Invalid request params',
+                data: { issues: parsed.error.issues },
+              })
             }
 
             Object.assign(request.params, parsed.data)
           }
 
-          if (schema.query instanceof ZodType) {
+          if (schema.query) {
             const parsed = await schema.query.safeParseAsync(request.query)
 
             if (!parsed.success) {
-              return this.modifiers.invalidRequest(
-                req,
-                res,
-                parsed.error.errors,
-              )
+              throw new HTTPError({
+                statusCode: 400,
+                message: 'Invalid request query',
+                data: { issues: parsed.error.issues },
+              })
             }
 
             Object.assign(request.query, parsed.data)
           }
 
-          if (schema.body instanceof ZodType) {
+          if (schema.body) {
             const parsed = await schema.body.safeParseAsync(request.body)
 
             if (!parsed.success) {
-              return this.modifiers.invalidRequest(
-                req,
-                res,
-                parsed.error.errors,
-              )
+              throw new HTTPError({
+                statusCode: 400,
+                message: 'Invalid request body',
+                data: { issues: parsed.error.issues },
+              })
             }
 
             if (request.body !== null) {
@@ -181,15 +164,15 @@ export class Router {
             }
           }
 
-          if (schema.headers instanceof ZodType) {
+          if (schema.headers) {
             const parsed = await schema.headers.safeParseAsync(request.headers)
 
             if (!parsed.success) {
-              return this.modifiers.invalidRequest(
-                req,
-                res,
-                parsed.error.errors,
-              )
+              throw new HTTPError({
+                statusCode: 400,
+                message: 'Invalid request headers',
+                data: { issues: parsed.error.issues },
+              })
             }
 
             Object.assign(request.headers, parsed.data)
@@ -197,25 +180,26 @@ export class Router {
         }
 
         for (const middleware of middlewares) {
-          await middleware(req, res)
+          const result = await middleware(req, res)
+
+          if (result !== undefined) {
+            return result
+          }
 
           if (res.writableEnded) {
             return
           }
         }
 
-        const json = await handler(request, res)
-
-        if (json) {
-          return this.modifiers.success(req, res, json)
-        }
-      } catch (error) {
-        return this.modifiers.error(req, res, error)
+        return handler(request, res)
       }
-    }
 
-    if (!matched) {
-      return this.modifiers.notFound(req, res)
-    }
+      throw new HTTPError({
+        statusCode: 404,
+        message: 'Not found',
+      })
+    })
   }
 }
+
+export const createRouter = (init: RouterInit = {}) => new Router(init)

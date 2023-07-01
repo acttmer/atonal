@@ -2,7 +2,7 @@ import type {
   IncomingMessage as Request,
   ServerResponse as Response,
 } from 'http'
-import { vary } from '../http'
+import { vary } from './utils'
 
 export interface AccessControlOptions {
   readonly origin?:

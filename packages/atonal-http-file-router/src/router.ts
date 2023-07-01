@@ -1,19 +1,23 @@
-import { Http, RouteSchema } from '@atonal/http'
+import { createRouter, type RouteSchema } from '@atonal/http'
 import fs from 'fs/promises'
 import path from 'path'
-import { FileRoute } from './interface'
-import { SUPPORT_HTTP_METHODS, resolveUrlPaths } from './utils'
+import type { FileRoute } from './interface'
+import { resolveUrlPaths, SUPPORT_HTTP_METHODS } from './utils'
 
 export const defineRoute = <Schema extends RouteSchema>(
   route: FileRoute<Schema>,
 ) => route
 
-export const createFileRoutes = async (
-  http: Http,
-  baseDir: string,
-  prefix: string = '/',
-) => {
-  const walk = async (dirname: string, prefix = '/') => {
+export const createFileRouter = async ({
+  baseDir,
+  prefix = '/',
+}: {
+  baseDir: string
+  prefix?: string
+}) => {
+  const router = createRouter()
+
+  const walk = async (dirname: string, prefix: string) => {
     const filenames = await fs.readdir(dirname)
 
     for (const filename of filenames) {
@@ -39,7 +43,7 @@ export const createFileRoutes = async (
 
         for (const method of SUPPORT_HTTP_METHODS) {
           if (module[method]) {
-            http.router.route({
+            router.route({
               name: module[method].name,
               method,
               path: pathname,
@@ -54,4 +58,6 @@ export const createFileRoutes = async (
   }
 
   await walk(baseDir, prefix)
+
+  return router
 }

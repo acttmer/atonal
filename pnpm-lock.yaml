@@ -1,9 +1,31 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 importers:
 
   packages/atonal-http:
     devDependencies:
+      '@types/node':
+        specifier: ^18.16.14
+        version: 18.16.14
+      rimraf:
+        specifier: ^5.0.1
+        version: 5.0.1
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+      zod:
+        specifier: ^3.21.4
+        version: 3.21.4
+
+  packages/atonal-http-cors:
+    devDependencies:
+      '@atonal/http':
+        specifier: workspace:^
+        version: link:../atonal-http
       '@types/node':
         specifier: ^18.16.14
         version: 18.16.14

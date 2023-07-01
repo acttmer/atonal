@@ -9,11 +9,28 @@ export type JSONValue =
   | Readonly<{ [x: string]: JSONValue }>
   | ReadonlyArray<JSONValue>
 
+export type HTTPMethod =
+  | 'DELETE'
+  | 'GET'
+  | 'HEAD'
+  | 'PATCH'
+  | 'POST'
+  | 'PUT'
+  | 'OPTIONS'
+  | 'PROPFIND'
+  | 'PROPPATCH'
+  | 'MKCOL'
+  | 'COPY'
+  | 'MOVE'
+  | 'LOCK'
+  | 'UNLOCK'
+  | 'TRACE'
+  | 'SEARCH'
+
 export type DefaultParams = Record<string, string>
 export type DefaultQuery = ParsedUrlQuery
 export type DefaultBody = JSONValue
 export type DefaultHeaders = IncomingHttpHeaders
-export type DefaultResponseData = unknown
 
 export type Request<
   Params = DefaultParams,
@@ -38,5 +55,3 @@ export type RequestHandler<
   req: Request<Params, Query, Body, Headers>,
   res: Response,
 ) => Promise<unknown> | unknown | Promise<void> | void
-
-export type RequestDecorator<T> = (req: Request) => T
