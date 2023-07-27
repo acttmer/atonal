@@ -1,6 +1,6 @@
 {
   "name": "@atonal/http",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Build stateless HTTP JSON API endpoints with router and validation",
   "main": "dist/index.js",
   "author": "Aego <aego.yu@gmail.com> (https://aego.me)",

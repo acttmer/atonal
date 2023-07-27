@@ -4,6 +4,7 @@ import {
   type Server,
   type ServerResponse,
 } from 'http'
+import './bootstrap'
 import { HTTPError } from './http/error'
 import type { Middleware } from './middleware'
 
