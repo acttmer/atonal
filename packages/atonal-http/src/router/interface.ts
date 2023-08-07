@@ -19,6 +19,7 @@ export interface RouteSchema {
   readonly query?: ZodType
   readonly body?: ZodType
   readonly headers?: ZodType
+  readonly response?: ZodType
 }
 
 export interface Route<Schema extends RouteSchema> {
